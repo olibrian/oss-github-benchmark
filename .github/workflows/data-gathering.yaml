@@ -34,6 +34,9 @@ jobs:
         path: data-gathering/oss-github-benchmark.*
 
   build-and-deploy:
+    name: Build and Deploy Angular App
+    needs: build
+
     runs-on: ubuntu-latest
 
     steps:
