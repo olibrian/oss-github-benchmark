@@ -1,8 +1,9 @@
 name: Python package
 
-on:
-  schedule:
-    - cron:  '12 2 * * *'
+on: [push]
+# on:
+#   schedule:
+#     - cron:  '12 2 * * *'
 
 jobs:
   build:
@@ -31,3 +32,27 @@ jobs:
       with:
         name: oss-gathered-data
         path: data-gathering/oss-github-benchmark.*
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+
+    - name: Download gathered data
+      uses: actions/download-artifact@v2
+      with:
+        name: oss-gathered-data
+        path: frontend/src/assets/
+
+    - name: Prepare and deploy
+      env:
+        GITHUBTOKEN: ${{ secrets.GITHUBTOKEN }}
+        # GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd frontend
+        npm install
+        npm run ng -- deploy --cname=ossbenchmark.com --repo=https://github.com/digital-sustainability/oss-github-benchmark.git --name="Jan Dietrich" --email="jan.dietrich@myown.one"
