@@ -1,33 +1,28 @@
-name: Build and Deploy App
+name: Deploy to GitHub Pages via angular-cli-ghpages
 
-on:
-  schedule:
-    - cron:  '12 12 * * *'
+on: [push]
 
 jobs:
-  build:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+    - uses: actions/setup-node@v1
       with:
-        python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
-        architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
-    - name: Install dependencies 
-      run: |
-        cd data-gathering
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: run data gathering
-      run: |
-        cd data-gathering
-        python OSS_github_benchmark.py
-      env:
-        GITHUBTOKEN: ${{ secrets.GITHUBTOKEN }}
-    - uses: actions/upload-artifact@v2
+        node-version: '12'
+
+    - name: Download gathered data
+      uses: actions/download-artifact@v2
       with:
         name: oss-gathered-data
-        path: data-gathering/oss-github-benchmark.*
+        path: frontend/src/assets/
+
+    - name: Prepare and deploy
+      env:
+        GITHUBTOKEN: ${{ secrets.GITHUBTOKEN }}
+        # GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd frontend
+        npm install
+        npm run ng -- deploy --cname=ossbenchmark.com --repo=https://github.com/digital-sustainability/oss-github-benchmark.git --name="Jan Dietrich" --email="jan.dietrich@myown.one"
